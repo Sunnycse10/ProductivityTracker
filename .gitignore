@@ -1,0 +1,20 @@
+# Build Result
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Rr]elease/
+
+# Visual Studio Cache
+.vs/
+*.user
+
+
+# Generated Files
+*.g.*
+*.g.i.cs
+*.designer.cs
+
+
+# NuGet
+*.nupkg
