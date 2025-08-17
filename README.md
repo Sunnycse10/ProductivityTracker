@@ -1,0 +1,1 @@
+## This app tracks Keystroke using MouseKeyHook and calculate how long keyboard was used while running in background
