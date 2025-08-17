@@ -3,12 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:oxycontrols="http://oxyplot.org/wpf/contrib"
         xmlns:local="clr-namespace:ProductivityTracker"
         mc:Ignorable="d"
         DataContext="{Binding ViewModel , RelativeSource={RelativeSource Self}}"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <TextBlock  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15" FontWeight="Bold" Text="{Binding ProductivityText}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <TextBlock FontSize="15" Text="{Binding ProductivityText}"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <oxy:PlotView Model="{Binding ProductivityPlot}" />
+         </Grid>
 
 
 

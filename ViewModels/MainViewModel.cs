@@ -8,18 +8,56 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using OxyPlot;
+using OxyPlot.Series;
+using System.Drawing;
+using OxyPlot.Axes;
 
 namespace ProductivityTracker.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private readonly ProductivityData _service;
+        private readonly ProductivityDataModel _service;
         private DateTime _lastKeyPress = DateTime.MinValue;
         private TimeSpan _treshold = TimeSpan.FromSeconds(30);
         private IKeyboardMouseEvents _globalHook;
         private int _typingMinutes;
         private System.Timers.Timer _timer;
         private string _productivityText;
+        public Dictionary<string, int> PData = new();
+        public IList<int> points {  get; set; }
+        public IList<string> categories { get; set; }
+        private PlotModel _productivityPlot;
+
+        public void DrawProductivityPlot()
+        {
+
+            PData = _service.ProductivityData;
+            var pData7Days = PData
+                .OrderByDescending(kvp => DateTime.ParseExact(kvp.Key, "dd/MM/yyyy", null))
+                .Take(7)
+                .OrderBy(kvp => DateTime.ParseExact(kvp.Key, "dd/MM/yyyy", null))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            points = pData7Days.Values.ToList();
+            categories = pData7Days.Keys.ToList();
+            _productivityPlot = new PlotModel { Title = "Typing duration of last 7 days" };
+            var barSeries = new List<BarItem>();
+            foreach (var p in points)
+            {
+                barSeries.Add(new BarItem { Value = p });
+            }
+            _productivityPlot.Series.Add(new BarSeries { ItemsSource = barSeries, LabelPlacement = LabelPlacement.Outside , LabelFormatString= "{00}min" });
+            _productivityPlot.Axes.Add(new CategoryAxis { Position = AxisPosition.Left, ItemsSource = categories });
+
+        }
+
+        public PlotModel ProductivityPlot
+        {
+            get {
+                DrawProductivityPlot();
+                return _productivityPlot; }
+        }
 
         public string ProductivityText
         {
@@ -39,8 +77,9 @@ namespace ProductivityTracker.ViewModels
         }
         public MainViewModel()
         {
-            _service = new ProductivityData();
-            _typingMinutes = _service.TypingMinutes;
+            _service = new ProductivityDataModel();
+            TypingMinutes = _service.TypingMinutes;
+            DrawProductivityPlot();
             StartTimer();
             Subscribe();
 
@@ -59,6 +98,7 @@ namespace ProductivityTracker.ViewModels
                 _service.TypingMinutes = _typingMinutes;
                 OnPropertyChanged(nameof(TypingMinutes));
                 OnPropertyChanged(nameof(ProductivityText));
+                OnPropertyChanged(nameof(ProductivityPlot));
             }
         }
 

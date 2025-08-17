@@ -9,12 +9,13 @@ using System.Windows.Forms;
 
 namespace ProductivityTracker.Models
 {
-    public class ProductivityData
+    public class ProductivityDataModel
     {
         private readonly string _dataFile = "ProductivityData.json";
         private Dictionary<string, int> _productivityData = new Dictionary<string, int>();
+        public Dictionary<string,int> ProductivityData => _productivityData;
 
-        public ProductivityData() {
+        public ProductivityDataModel() {
             LoadData();
         }
         public void LoadData()
