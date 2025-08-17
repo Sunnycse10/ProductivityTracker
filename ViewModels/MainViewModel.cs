@@ -12,6 +12,7 @@ using OxyPlot;
 using OxyPlot.Series;
 using System.Drawing;
 using OxyPlot.Axes;
+using System.Windows.Threading;
 
 namespace ProductivityTracker.ViewModels
 {
@@ -19,15 +20,18 @@ namespace ProductivityTracker.ViewModels
     {
         private readonly ProductivityDataModel _service;
         private DateTime _lastKeyPress = DateTime.MinValue;
-        private TimeSpan _treshold = TimeSpan.FromSeconds(30);
+        private const int IntervalTimeInSeconds = 60;
+        private const int ActivityThresholdSeconds = 30;
+        private TimeSpan _treshold = TimeSpan.FromSeconds(ActivityThresholdSeconds);
         private IKeyboardMouseEvents _globalHook;
         private int _typingMinutes;
-        private System.Timers.Timer _timer;
+        private DispatcherTimer _timer;
         private string _productivityText;
         public Dictionary<string, int> PData = new();
         public IList<int> points {  get; set; }
         public IList<string> categories { get; set; }
         private PlotModel _productivityPlot;
+        
 
         public void DrawProductivityPlot()
         {
@@ -37,7 +41,7 @@ namespace ProductivityTracker.ViewModels
                 .OrderByDescending(kvp => DateTime.ParseExact(kvp.Key, "dd/MM/yyyy", null))
                 .Take(7)
                 .OrderBy(kvp => DateTime.ParseExact(kvp.Key, "dd/MM/yyyy", null))
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);//Collecting data of latest 7 days to display in bar chart
 
             points = pData7Days.Values.ToList();
             categories = pData7Days.Keys.ToList();
@@ -47,7 +51,7 @@ namespace ProductivityTracker.ViewModels
             {
                 barSeries.Add(new BarItem { Value = p });
             }
-            _productivityPlot.Series.Add(new BarSeries { ItemsSource = barSeries, LabelPlacement = LabelPlacement.Outside , LabelFormatString= "{00}min" });
+            _productivityPlot.Series.Add(new BarSeries { ItemsSource = barSeries, LabelPlacement = LabelPlacement.Inside , LabelFormatString= "{00}min", FillColor= OxyColor.FromRgb(255,165,0) });
             _productivityPlot.Axes.Add(new CategoryAxis { Position = AxisPosition.Left, ItemsSource = categories });
 
         }
@@ -55,8 +59,8 @@ namespace ProductivityTracker.ViewModels
         public PlotModel ProductivityPlot
         {
             get {
-                DrawProductivityPlot();
-                return _productivityPlot; }
+                return _productivityPlot;
+            }
         }
 
         public string ProductivityText
@@ -96,6 +100,7 @@ namespace ProductivityTracker.ViewModels
                 if (_typingMinutes == value) return;
                 _typingMinutes = value;
                 _service.TypingMinutes = _typingMinutes;
+                DrawProductivityPlot();
                 OnPropertyChanged(nameof(TypingMinutes));
                 OnPropertyChanged(nameof(ProductivityText));
                 OnPropertyChanged(nameof(ProductivityPlot));
@@ -121,7 +126,6 @@ namespace ProductivityTracker.ViewModels
         private void Unsubscribe()
         {
             _timer.Stop();
-            _timer.Dispose();
             _service.SaveData();
             _globalHook.KeyDown -= GlobalHookOnKeyDown;
             _globalHook.Dispose();
@@ -129,8 +133,9 @@ namespace ProductivityTracker.ViewModels
         }
         private void StartTimer()
         {
-            _timer = new System.Timers.Timer(60000);
-            _timer.Elapsed += (s, e) =>
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(IntervalTimeInSeconds);
+            _timer.Tick += (s, e) =>
             {
                 if ((DateTime.Now - _lastKeyPress) < _treshold)
                 {

@@ -15,7 +15,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
-            <TextBlock FontSize="15" Text="{Binding ProductivityText}"/>
+            <TextBlock FontSize="15" FontWeight="Bold" TextAlignment="Left" Text="{Binding ProductivityText}"/>
         </Grid>
         <Grid Grid.Row="1">
             <oxy:PlotView Model="{Binding ProductivityPlot}" />
