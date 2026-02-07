@@ -1,3 +1,3 @@
-####  This windows desktop app tracks Keystroke and calculate how long keyboard was used while running in background. 
+This Windows desktop application tracks keyboard activity and calculates how long the keyboard is used while running in the background.
 
-NuGet package MouseKeyHook was used to track keystroke and OxyPlot was used to draw bar chart to show keyboard usage of last 7 days. 
+It uses the MouseKeyHook NuGet package to capture keystroke events and OxyPlot to visualize keyboard usage as a bar chart for the last 7 days.
